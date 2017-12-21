@@ -11,7 +11,6 @@ import UIKit
 fileprivate let screen_w = UIScreen.main.bounds.width
 fileprivate let screen_h = UIScreen.main.bounds.height
 
-
 enum HTDatePickerStyle {
     case Y                      //年
     case YM                     //年月
@@ -21,6 +20,8 @@ enum HTDatePickerStyle {
     case YMDHMS                 //年月日 时分秒
 }
 
+typealias EnsureBlock = (_ selectString: String) -> ()
+
 protocol HTDatePickerDelegate {
     
     func clickEnsure(selectDate: String)
@@ -29,6 +30,10 @@ protocol HTDatePickerDelegate {
 class HTDatePickerSwift: UIView {
     
     /***************公开给外部自定义控件的接口***************/
+    /// 控件代理方法
+    var delegate: HTDatePickerDelegate?
+    /// 确定按钮的回调
+    var ensureBlock: EnsureBlock?
     
     /// 是否可选当前时间之前的时间(默认为不可选)
     open var isCanSelectBefore = false
@@ -124,8 +129,6 @@ class HTDatePickerSwift: UIView {
     
     /// 私有时间选择器风格(默认为年)
     private var _style: HTDatePickerStyle = .Y
-    var delegate: HTDatePickerDelegate?
-    
     
     
     private func creatView(){
@@ -316,7 +319,11 @@ class HTDatePickerSwift: UIView {
         if sender.tag == 666 {
             hideDatePicker()
         }else{
-            delegate?.clickEnsure(selectDate: selectDateString)
+            guard let ensureBlock = ensureBlock else { return }
+            ensureBlock(selectDateString)
+            if delegate != nil {
+                delegate?.clickEnsure(selectDate: selectDateString)
+            }
         }
     }
     
