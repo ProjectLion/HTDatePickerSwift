@@ -71,8 +71,7 @@ class HTDatePickerSwift: UIView {
     /// 重写父类的init方法
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.configData()
-        self.creatView()
+        
     }
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -83,9 +82,10 @@ class HTDatePickerSwift: UIView {
     /// - Parameters:
     ///   - frame: frame
     ///   - style: 时间选择器的风格
-    init(frame: CGRect, style: HTDatePickerStyle) {
+    convenience init(frame: CGRect, style: HTDatePickerStyle) {
+        
+        self.init(frame: frame)
         _style = style
-        super.init(frame: frame)
         configData()
         creatView()
         scrollToCurrentDate()
@@ -132,13 +132,15 @@ class HTDatePickerSwift: UIView {
     
     
     private func creatView(){
-        self.backgroundColor = UIColor.white
-        
-        alphaView.frame = CGRect(x: 0, y: -(screen_h - self.frame.size.height), width: screen_w, height: screen_h - self.frame.size.height)
+        self.backgroundColor = UIColor.clear
+//        self.isUserInteractionEnabled = false
+        alphaView.frame = CGRect(x: 0, y: 0, width: screen_w, height: self.frame.size.height - 300)
         alphaView.alpha = 0
+        alphaView.isUserInteractionEnabled = true
+        alphaView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(hideDatePicker)))
         alphaView.backgroundColor = UIColor.black
         
-        cancelBtn.frame = CGRect(x: 20, y: 5, width: self.frame.width / 5, height: 30)
+        cancelBtn.frame = CGRect(x: 20, y: alphaView.frame.size.height + alphaView.frame.origin.y + 5, width: self.frame.width / 5, height: 30)
         cancelBtn.setTitle("取消", for: .normal)
         cancelBtn.tag = 666
         cancelBtn.setTitleColor(UIColor.gray, for: .normal)
@@ -146,7 +148,7 @@ class HTDatePickerSwift: UIView {
         cancelBtn.addTarget(self, action: #selector(clickBtn(sender:)), for: .touchUpInside)
         self.addSubview(cancelBtn)
         
-        ensureBtn.frame = CGRect(x: self.frame.size.width * 4 / 5 - 20, y: 5, width: self.frame.width / 5, height: 30)
+        ensureBtn.frame = CGRect(x: self.frame.size.width * 4 / 5 - 20, y: cancelBtn.frame.origin.y, width: self.frame.width / 5, height: 30)
         ensureBtn.setTitle("确定", for: .normal)
         ensureBtn.tag = 777
         ensureBtn.setTitleColor(UIColor.gray, for: .normal)
@@ -154,7 +156,7 @@ class HTDatePickerSwift: UIView {
         ensureBtn.addTarget(self, action: #selector(clickBtn(sender:)), for: .touchUpInside)
         self.addSubview(ensureBtn)
         
-        datePickerView = UIPickerView(frame: CGRect(x: 0, y: 44, width: self.frame.size.width, height: self.frame.size.height - 44))
+        datePickerView = UIPickerView(frame: CGRect(x: 0, y: cancelBtn.frame.origin.y + cancelBtn.frame.size.height + 14, width: self.frame.size.width, height: 300))
         datePickerView.delegate = self
         datePickerView.dataSource = self
         datePickerView.layer.borderWidth = 1.5
@@ -315,16 +317,15 @@ class HTDatePickerSwift: UIView {
     }
     
     // MARK: 按钮点击方法
-    @objc func clickBtn(sender: UIButton){
-        if sender.tag == 666 {
-            hideDatePicker()
-        }else{
+    @objc private func clickBtn(sender: UIButton){
+        if sender.tag == 777 {
             guard let ensureBlock = ensureBlock else { return }
             ensureBlock(selectDateString)
-            if delegate != nil {
-                delegate?.clickEnsure(selectDate: selectDateString)
-            }
+            
+            guard let delegate = delegate else { return }
+            delegate.clickEnsure(selectDate: selectDateString)
         }
+        hideDatePicker()
     }
     
     
@@ -480,7 +481,6 @@ extension HTDatePickerSwift: UIPickerViewDataSource, UIPickerViewDelegate{
                 }
             }
         }
-//        pickerView.reloadAllComponents()
         
         switch _style {
         case .Y:
@@ -526,8 +526,8 @@ extension HTDatePickerSwift{
     /// 展示时间选择器
     func showDatePicker(){
         scrollToCurrentDate()
-        UIView.animate(withDuration: 0.2, animations: {
-            self.frame = CGRect(x: 0, y: screen_h - self.frame.size.height, width: screen_w, height: self.frame.size.height)
+        UIView.animate(withDuration: 0.35, animations: {
+            self.frame = CGRect(x: 0, y: 0, width: screen_w, height: self.frame.size.height)
         }) { (finished) in
             if finished {
                 self.addSubview(self.alphaView)
@@ -537,8 +537,8 @@ extension HTDatePickerSwift{
     }
     
     /// 隐藏时间选择器
-    func hideDatePicker(){
-        UIView.animate(withDuration: 0.2, animations: {
+    @objc func hideDatePicker(){
+        UIView.animate(withDuration: 0.35, animations: {
             self.alphaView.alpha = 0
             self.frame = CGRect(x: 0, y: screen_h, width: screen_w, height: self.frame.size.height)
         }) { (finished) in
