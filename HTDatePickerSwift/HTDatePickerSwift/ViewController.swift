@@ -12,6 +12,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .red
         // Do any additional setup after loading the view, typically from a nib.
     }
 
@@ -21,10 +22,13 @@ class ViewController: UIViewController {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let date = HTDatePickerSwift(frame: CGRect.init(x: 0, y: UIScreen.main.bounds.height, width: UIScreen.main.bounds.width, height: 300), style: .YMDHMS)
+        let date = DatePickerSwift(style: .YMDHMS)
         date.isCanSelectBefore = true
-        date.delegate = self
-        view.addSubview(date)
+//        date.delegate = self
+        date.ensureBlock = {
+            tiem in
+            print(tiem)
+        }
         date.showDatePicker()
     }
 
